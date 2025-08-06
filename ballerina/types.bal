@@ -1,13 +1,38 @@
-import ballerina/ai;
+// Copyright (c) 2025 WSO2 LLC (http://www.wso2.com).
+//
+// WSO2 LLC. licenses this file to you under the Apache License,
+// Version 2.0 (the "License"); you may not use this file except
+// in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing,
+// software distributed under the License is distributed on an
+// "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied.  See the License for the
+// specific language governing permissions and limitations
+// under the License.
 
-# Represents the configuration options for interacting with a Weaviate vector store.
-public type Configuration record {
-    # Optional namespace to isolate vectors within Weaviate
-    string namespace?;
-    # Metadata filters applied during search
-    ai:MetadataFilters filters?;
-    # Optional sparse vector for hybrid search operations
-    ai:SparseVector sparseVector?;
-    # Number of top similar vectors to return in queries
-    int topK = 5;
+
+# Configuration for the Weaviate vector store.
+#
+# + className - The name of the collection to use.
+public type Configuration record {|
+    string className;
+|};
+
+# The result of a query to the Weaviate vector store.
+#
+# + _additional - Additional information about the query result.
+# + content - The content of the query result.
+# + 'type - field description
+public type QueryResult record {
+    record {
+        string? id;
+        float certainty;
+        float[] vector;
+    } _additional;
+    string content?;
+    string 'type?;
 };
