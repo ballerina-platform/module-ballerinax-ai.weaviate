@@ -16,6 +16,10 @@
 
 import ballerina/ai;
 
+# Converts metadata filters to Weaviate compatible filter format
+#
+# + filters - The metadata filters containing filter conditions and logical operators
+# + return - A map representing the converted filter structure or an error if conversion fails
 isolated function convertWeaviateFilters(ai:MetadataFilters filters) returns map<anydata>|ai:Error {
     (ai:MetadataFilters|ai:MetadataFilter)[]? rawFilters = filters.filters;
     if rawFilters == () || rawFilters.length() == 0 {
@@ -44,10 +48,17 @@ isolated function convertWeaviateFilters(ai:MetadataFilters filters) returns map
         return filterList[0];
     }
     string weaviateCondition = check mapWeaviateCondition(filters.condition);
-    map<anydata> result = {"operator": weaviateCondition, "operands": filterList};
+    map<anydata> result = {
+        "operator": weaviateCondition, 
+        "operands": filterList
+    };
     return result;
 }
 
+# Maps metadata filter operators to Weaviate compatible operators
+#
+# + operation - The metadata filter operator to map
+# + return - The Weaviate compatible operator or an error if the operator is not supported
 isolated function mapWeaviateOperator(string operation) returns string|ai:Error {
     match operation {
         "==" => {
@@ -74,6 +85,10 @@ isolated function mapWeaviateOperator(string operation) returns string|ai:Error 
     }
 }
 
+# Maps metadata logical conditions to Weaviate compatible conditions
+#
+# + condition - The metadata logical condition to map
+# + return - The Weaviate compatible condition or an error if the condition is not supported
 isolated function mapWeaviateCondition(string condition) returns string|ai:Error {
     match condition.toUpperAscii() {
         "AND" => {
@@ -88,47 +103,51 @@ isolated function mapWeaviateCondition(string condition) returns string|ai:Error
     }
 }
 
+# Converts a map to a GraphQL compatible string representation
+#
+# + filter - The map to convert
+# + return - The GraphQL compatible string representation of the map
 isolated function mapToGraphQLObjectString(map<anydata> filter) returns string {
     string result = "{";
     boolean first = true;
-    foreach anydata [k, v] in filter.entries() {
+    foreach anydata ['key, value] in filter.entries() {
         if !first {
             result += ", ";
         }
         first = false;
-        result += k + ": ";
-        if v is string[] {
+        result += 'key + ": ";
+        if value is string[] {
             string resultArr = "";
             int i = 0;
-            foreach string s in v {
+            foreach string s in value {
                 resultArr += string `"${s}"`;
-                if i < v.length() - 1 {
+                if i < value.length() - 1 {
                     resultArr += ", ";
                 }
                 i += 1;
             }
             result += "[" + resultArr + "]";
-        } else if v is map<anydata> {
-            result += mapToGraphQLObjectString(v);
-        } else if v is map<anydata>[] {
+        } else if value is map<anydata> {
+            result += mapToGraphQLObjectString(value);
+        } else if value is map<anydata>[] {
             string resultArr = "";
             int i = 0;
-            foreach map<anydata> m in v {
+            foreach map<anydata> m in value {
                 resultArr += mapToGraphQLObjectString(m);
-                if i < v.length() - 1 {
+                if i < value.length() - 1 {
                     resultArr += ", ";
                 }
                 i += 1;
             }
             result += "[" + resultArr + "]";
-        } else if v is string {
-            if k == "operator" {
-                result += v;
+        } else if value is string {
+            if 'key == "operator" {
+                result += value;
             } else {
-                result += string `"${v}"`;
+                result += string `"${value}"`;
             }
         } else {
-            result += v.toString();
+            result += value.toString();
         }
     }
     result += "}";
