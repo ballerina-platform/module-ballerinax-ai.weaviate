@@ -28,6 +28,7 @@ public isolated class VectorStore {
 
     private final weaviate:Client weaviateClient;
     private final Configuration config;
+    private final string chunkFieldName;
 
     # Initializes the Weaviate vector store with the given configuration.
     #
@@ -41,6 +42,10 @@ public isolated class VectorStore {
         }
         self.weaviateClient = weaviateClient;
         self.config = config.cloneReadOnly();
+        lock {
+            string? chunkFieldName = self.config.cloneReadOnly().chunkFieldName;
+            self.chunkFieldName = chunkFieldName is () ? "content" : chunkFieldName;
+        }
     }
 
     public isolated function add(ai:VectorEntry[] entries) returns ai:Error? {
@@ -51,18 +56,20 @@ public isolated class VectorStore {
             weaviate:Object[] objects = [];
             foreach ai:VectorEntry entry in entries.cloneReadOnly() {
                 ai:Embedding embedding = entry.embedding;
-                if embedding !is ai:Vector {
-                    return error ai:Error("Unsupported embedded type. Weaviate does not support custom sparse or hybrid embeddings.");
+                if embedding is ai:Vector {
+                    objects.push({
+                        'class: self.config.className,
+                        id: entry.id,
+                        vector: embedding,
+                        properties: {
+                            "type": entry.chunk.'type,
+                            [self.chunkFieldName]: entry.chunk.content
+                        }
+                    });
                 }
-                objects.push({
-                    'class: self.config.className,
-                    id: entry.id,
-                    vector: embedding,
-                    properties: {
-                        "type": entry.chunk.'type,
-                        "content": entry.chunk.content
-                    }
-                });
+                // TODO: Add support for sparse and hybrid embeddings
+                // Weaviate does not support custom sparse or hybrid embeddings directly
+                // Need to convert them to dense vectors before adding to Weaviate
             }
             weaviate:ObjectsGetResponse[]|error result = self.weaviateClient->/batch/objects.post({
                 objects
@@ -111,7 +118,9 @@ public isolated class VectorStore {
                     }
                 }
             }`;
-            weaviate:GraphQLResponse|error result = self.weaviateClient->/graphql.post({ query: gqlQuery });
+            weaviate:GraphQLResponse|error result = self.weaviateClient->/graphql.post({
+                query: gqlQuery
+            });
             if result is error {
                 return error ai:Error("Failed to query vector store", result);
             }

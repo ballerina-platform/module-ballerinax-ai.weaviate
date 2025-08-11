@@ -17,15 +17,17 @@
 
 # Configuration for the Weaviate vector store.
 #
-# + className - The name of the collection to use.
+# + className - The name of the collection to use
+# + chunkFieldName - The name of the field to contain the chunk details
 public type Configuration record {|
     string className;
+    string chunkFieldName?;
 |};
 
 # The result of a query to the Weaviate vector store.
 #
-# + _additional - Additional information about the query result.
-# + content - The content of the query result.
+# + _additional - Additional information about the query result
+# + content - The content of the query result
 # + 'type - field description
 public type QueryResult record {
     record {
