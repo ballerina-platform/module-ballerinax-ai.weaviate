@@ -86,24 +86,32 @@ public isolated class VectorStore {
     public isolated function query(ai:VectorStoreQuery query) returns ai:VectorMatch[]|ai:Error {
         ai:VectorMatch[] finalMatches;
         lock {
-            weaviate:GraphQLResponse|error result = self.weaviateClient->/graphql.post({
-                query: string `{
-                    Get {
-                        ${self.config.className}(
-                            nearVector: {
-                                vector: ${query.embedding.toJsonString()}
-                            }
-                        ) {
-                            content
-                            _additional {
-                                certainty
-                                id
-                                vector
-                            }
+            string filterSection = "";
+            if query.hasKey("filters") && query.filters is ai:MetadataFilters {
+                ai:MetadataFilters? filters = query.cloneReadOnly().filters;
+                if filters !is () {
+                    map<anydata> weaviateFilter = check convertWeaviateFilters(filters);
+                    filterSection = "where: " + mapToGraphQLObjectString(weaviateFilter);
+                }
+            }
+            string gqlQuery = string `{
+                Get {
+                    ${self.config.className}(
+                        ${filterSection}
+                        nearVector: {
+                            vector: ${query.embedding.toJsonString()}
+                        }
+                    ) {
+                        content
+                        _additional {
+                            certainty
+                            id
+                            vector
                         }
                     }
-                }`
-            });
+                }
+            }`;
+            weaviate:GraphQLResponse|error result = self.weaviateClient->/graphql.post({ query: gqlQuery });
             if result is error {
                 return error ai:Error("Failed to query vector store", result);
             }
