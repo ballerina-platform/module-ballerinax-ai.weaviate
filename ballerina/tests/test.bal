@@ -60,8 +60,8 @@ function testQueryValuesFromVectorStore() returns error? {
             filters: [
                 {
                     operator: ai:EQUAL,
-                    'key: "type",
-                    value: "text"
+                    'key: "content",
+                    value: "This is a test chunk"
                 }
             ]
         }
