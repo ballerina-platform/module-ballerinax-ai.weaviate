@@ -29,6 +29,7 @@ public isolated class VectorStore {
     private final weaviate:Client weaviateClient;
     private final Configuration config;
     private final string chunkFieldName;
+    private final int topK;
 
     # Initializes the Weaviate vector store with the given configuration.
     #
@@ -42,6 +43,7 @@ public isolated class VectorStore {
         }
         self.weaviateClient = weaviateClient;
         self.config = config.cloneReadOnly();
+        self.topK = self.config.topK;
         lock {
             string? chunkFieldName = self.config.cloneReadOnly().chunkFieldName;
             self.chunkFieldName = chunkFieldName is () ? "content" : chunkFieldName;
@@ -85,7 +87,7 @@ public isolated class VectorStore {
             string path = self.config.className;
             http:Response|error result = self.weaviateClient->/objects/[path]/[id].delete();
             if result is error {
-                return error ai:Error("Failed to query vector store", result);
+                return error("Failed to query vector store", result);
             }
         }
     }
@@ -104,6 +106,7 @@ public isolated class VectorStore {
             string gqlQuery = string `{
                 Get {
                     ${self.config.className}(
+                        limit: ${self.topK}
                         ${filterSection}
                         nearVector: {
                             vector: ${query.embedding.toJsonString()}

@@ -48,11 +48,10 @@ isolated function convertWeaviateFilters(ai:MetadataFilters filters) returns map
         return filterList[0];
     }
     string weaviateCondition = check mapWeaviateCondition(filters.condition);
-    map<anydata> result = {
-        "operator": weaviateCondition, 
-        "operands": filterList
+    return {
+        operator: weaviateCondition, 
+        operands: filterList
     };
-    return result;
 }
 
 # Maps metadata filter operators to Weaviate compatible operators
@@ -79,10 +78,8 @@ isolated function mapWeaviateOperator(string operation) returns string|ai:Error 
         "<=" => {
             return "LessThanEqual";
         }
-        _ => {
-            return error ai:Error("Unsupported operator for Weaviate: " + operation);
-        }
     }
+    return error ai:Error("Unsupported operator for Weaviate: " + operation);
 }
 
 # Maps metadata logical conditions to Weaviate compatible conditions
@@ -118,34 +115,30 @@ isolated function mapToGraphQLObjectString(map<anydata> filter) returns string {
         result += 'key + ": ";
         if value is string[] {
             string resultArr = "";
-            int i = 0;
-            foreach string s in value {
-                resultArr += string `"${s}"`;
-                if i < value.length() - 1 {
+            int index = 0;
+            foreach string element in value {
+                resultArr += string `"${element}"`;
+                if index < value.length() - 1 {
                     resultArr += ", ";
                 }
-                i += 1;
+                index += 1;
             }
             result += "[" + resultArr + "]";
         } else if value is map<anydata> {
             result += mapToGraphQLObjectString(value);
         } else if value is map<anydata>[] {
             string resultArr = "";
-            int i = 0;
+            int index = 0;
             foreach map<anydata> m in value {
                 resultArr += mapToGraphQLObjectString(m);
-                if i < value.length() - 1 {
+                if index < value.length() - 1 {
                     resultArr += ", ";
                 }
-                i += 1;
+                index += 1;
             }
             result += "[" + resultArr + "]";
         } else if value is string {
-            if 'key == "operator" {
-                result += value;
-            } else {
-                result += string `"${value}"`;
-            }
+            result += 'key == "operator" ? value : string `"${value}"`;
         } else {
             result += value.toString();
         }
