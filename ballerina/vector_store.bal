@@ -125,22 +125,21 @@ public isolated class VectorStore {
                 query: gqlQuery
             });
             if result is error {
-                return error ai:Error("Failed to query vector store", result);
+                return error("Failed to query vector store", result);
             }
             weaviate:GraphQLError[]? errorResult = result?.errors;
             if errorResult !is () {
-                return error ai:Error("Failed to query vector store: " + errorResult.toJsonString());
+                return error("Failed to query vector store: " + errorResult.toJsonString());
             }
-
             record {|weaviate:JsonObject...;|}? response = result.data;
             if response is () {
                 return [];
             }
             weaviate:JsonObject values = response.get("Get");
-            anydata res = values.get(string `${self.config.className}`);
-            QueryResult[] val = check res.cloneWithType();
+            anydata data = values.get(string `${self.config.className}`);
+            QueryResult[] value = check data.cloneWithType();
             ai:VectorMatch[] matches = [];
-            foreach weaviate:JsonObject element in val {
+            foreach weaviate:JsonObject element in value {
                 matches.push({
                     id: element._additional.id,
                     embedding: element._additional.vector,
@@ -150,12 +149,12 @@ public isolated class VectorStore {
                     },
                     similarityScore: element._additional.certainty
                 });
-            } on fail error e {
-                return error ai:Error("Failed to parse vector store query", e);
+            } on fail error err {
+                return error("Failed to parse vector store query", err);
             }
             finalMatches = matches.cloneReadOnly();
-        } on fail var e {
-            return error ai:Error("Failed to query vector store", e);
+        } on fail error err {
+            return error("Failed to query vector store", err);
         }
         return finalMatches;
     }
