@@ -26,12 +26,7 @@ public type Configuration record {|
     int topK = 10;
 |};
 
-# The result of a query to the Weaviate vector store.
-#
-# + _additional - Additional information about the query result
-# + content - The content of the query result
-# + 'type - field description
-public type QueryResult record {
+type QueryResult record {
     record {
         string? id;
         float certainty;
