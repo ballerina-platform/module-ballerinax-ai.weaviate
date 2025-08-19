@@ -1,0 +1,12 @@
+[package]
+authors = ["Ballerina"]
+distribution = "2201.12.0"
+keywords = ["AI", "Weaviate", "Vector", "Store"]
+license = ["Apache-2.0"]
+name = "ai.weaviate"
+org = "ballerinax"
+repository = "https://github.com/ballerina-platform/module-ballerinax-ai.weaviate"
+version = "@toml.version@"
+
+[platform.java21]
+graalvmCompatible = true
