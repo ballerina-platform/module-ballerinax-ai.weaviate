@@ -58,10 +58,8 @@ ai:VectorStore vectorStore = check new weaviate:VectorStore(
     config = {
         className: "add-collection-name"
     }, 
-    httpConfig = {
-        auth: {
-            token: "add-access-token"
-        }
+    auth = {
+        token: "add-access-token"
     }
 );
 ```

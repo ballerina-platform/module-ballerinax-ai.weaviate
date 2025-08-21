@@ -62,15 +62,13 @@ import ballerinax/ai.weaviate;
 
 ```ballerina
 ai:VectorStore vectorStore = check new weaviate:VectorStore(
-    serviceUrl = "add-weaviate-service-url", 
-    config = {
-        className: "add-collection-name"
-    }, 
-    httpConfig = {
-        auth: {
-            token: "add-access-token"
-        }
-    }
+   serviceUrl = "add-weaviate-service-url", 
+   config = {
+      className: "add-collection-name"
+   }, 
+   auth = {
+      token: "add-access-token"
+   }
 );
 ```
 
