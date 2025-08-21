@@ -1,5 +1,3 @@
-# Ballerina Weaviate Vector Store Module
-
 ## Overview
 
 The Ballerina Weaviate vector store module provides a comprehensive API for integrating with Weaviate vector database, enabling efficient storage, retrieval, and management of high-dimensional vectors. This module implements the Ballerina AI `VectorStore` interface and supports multiple vector search algorithms.
@@ -86,3 +84,4 @@ ai:Error? result = vectorStore.add(
     ]
 );
 ```
+
