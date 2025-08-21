@@ -36,7 +36,7 @@ public isolated class VectorStore {
     public isolated function init(
             @display {label: "Service URL"} string serviceUrl,
             @display {label: "Weaviate Configuration"} Configuration config,
-            @display {label: "HTTP Configuration"} weaviate:ConnectionConfig httpConfig) returns ai:Error? {
+            @display {label: "HTTP Configuration"} *weaviate:ConnectionConfig httpConfig) returns ai:Error? {
         weaviate:Client|error weaviateClient = new (httpConfig, serviceUrl);
         if weaviateClient is error {
             return error("Failed to initialize weaviate vector store", weaviateClient);
