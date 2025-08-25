@@ -19,14 +19,12 @@ import ballerina/test;
 import ballerina/uuid;
 
 final VectorStore mockVectorStore = check new (
-    serviceUrl = "http://localhost:9090",
+    serviceUrl = "http://localhost:8080/v1",
     config = {
         className: "Chunk"
     },
-    httpConfig = {
-        auth: {
-            token: "mock-token"
-        }
+    auth = {
+        token: "mock-token"
     }
 );
 

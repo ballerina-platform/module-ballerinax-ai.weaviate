@@ -73,6 +73,55 @@ task commitTomlFiles {
     }
 }
 
+task startWeaviateServer() {
+    doLast {
+        def outputStream = new ByteArrayOutputStream()
+        // Check if the weaviate container is already running
+        project.exec {
+            workingDir "${project.projectDir}/resources/server"
+            ignoreExitValue true
+            standardOutput = outputStream
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', 'docker compose ps -q weaviate'
+            } else {
+                commandLine 'sh', '-c', 'docker compose ps -q weaviate'
+            }
+        }
+
+        def containerId = outputStream.toString().trim()
+        if (containerId) {
+            println "Weaviate container is already running (" + containerId + ")"
+            return
+        }
+
+        // Start the weaviate container if not running
+        project.exec {
+            workingDir "${project.projectDir}/resources/server"
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', 'docker compose up -d weaviate'
+            } else {
+                commandLine 'sh', '-c', 'docker compose up -d weaviate'
+            }
+        }
+        println "Weaviate server started"
+    }
+}
+
+task stopWeaviateServer() {
+    doLast {
+        project.exec {
+            workingDir "${project.projectDir}/resources/server"
+            ignoreExitValue true
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine 'cmd', '/c', 'docker-compose down'
+            } else {
+                commandLine 'sh', '-c', 'docker-compose down'
+            }
+        }
+        println "Weaviate server stopped successfully"
+    }
+}
+
 publishing {
     publications {
         maven(MavenPublication) {
@@ -96,5 +145,9 @@ clean {
 }
 
 build.dependsOn "generatePomFileForMavenPublication"
+build.dependsOn startWeaviateServer
+build.finalizedBy stopWeaviateServer
+test.dependsOn startWeaviateServer
+test.finalizedBy stopWeaviateServer
 publishToMavenLocal.dependsOn build
 publish.dependsOn build
