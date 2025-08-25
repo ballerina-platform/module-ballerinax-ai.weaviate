@@ -19,6 +19,9 @@ You can create an account for free if you don't already have one.
 2. Complete the registration process and verify your email address if required
 3. Log in to your new Weaviate account
 
+For more details, refer to the official documentation on [creating a new account](https://docs.weaviate.io/cloud/platform/create-account).
+
+
 ### Step 2: Set up a Weaviate cluster
 
 1. Access the Weaviate Console and click **Create Cluster** to create a new Weaviate instance.
@@ -32,6 +35,8 @@ You can create an account for free if you don't already have one.
 3. Click **Create** and wait for the cluster to be provisioned (this typically takes 2-3 minutes)
 4. Once the cluster is ready, locate and copy the REST endpoint URL from your cluster dashboard. You'll use this URL as the `serviceUrl` in your `weaviate:Client` configuration
 
+For more details, refer to the official documentation on [creating clusters](https://docs.weaviate.io/cloud/manage-clusters/create).
+
 ### Step 3: Generate API credentials
 
 1. In the Weaviate Console, navigate to your cluster dashboard and go to the API Keys section
@@ -40,6 +45,8 @@ You can create an account for free if you don't already have one.
    <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/ballerina/create-api-key.png" alt="Create Cluster" width="60%">
 
 3. Securely save the generated API key, which you'll use as the `token` in your `weaviate:Client` configuration.
+
+For more details, refer to the official documentation on [authentication](https://docs.weaviate.io/cloud/manage-clusters/authentication).
 
 ## Quick Start
 

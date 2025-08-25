@@ -8,7 +8,7 @@
 
 Weaviate is an open-source vector database that stores both objects and vectors, allowing for combining vector search with structured filtering with the scalability of a cloud-native database.
 
-The Ballerina Weaviate vector store module provides a comprehensive API for integrating with Weaviate vector databases, enabling efficient storage, retrieval, and management of high-dimensional vectors. This implementation allows being used as a Ballerina AI `ai:VectorStore`, providing smooth integration with the Ballerina AI module.
+The Ballerina Weaviate vector store module provides a comprehensive API for integrating with Weaviate vector databases, enabling efficient storage, retrieval, and management of high-dimensional vectors. This implementation allows being used as a Ballerina `ai:VectorStore`, providing smooth integration with the Ballerina AI module.
 
 ## Set up guide
 
@@ -25,6 +25,8 @@ You can create an account for free if you don't already have one.
 2. Complete the registration process and verify your email address if required
 3. Log in to your new Weaviate account
 
+For more details, refer to the official documentation on [creating a new account](https://docs.weaviate.io/cloud/platform/create-account).
+
 ### Step 2: Set up a Weaviate cluster
 
 1. Access the Weaviate Console and click **Create Cluster** to create a new Weaviate instance.
@@ -38,6 +40,8 @@ You can create an account for free if you don't already have one.
 3. Click **Create** and wait for the cluster to be provisioned (this typically takes 2-3 minutes)
 4. Once the cluster is ready, locate and copy the REST endpoint URL from your cluster dashboard. You'll use this URL as the `serviceUrl` in your `weaviate:Client` configuration
 
+For more details, refer to the official documentation on [creating clusters](https://docs.weaviate.io/cloud/manage-clusters/create).
+
 ### Step 3: Generate API credentials
 
 1. In the Weaviate Console, navigate to your cluster dashboard and go to the API Keys section
@@ -47,9 +51,9 @@ You can create an account for free if you don't already have one.
 
 3. Securely save the generated API key, which you'll use as the `token` in your `weaviate:Client` configuration.
 
-## Quick Start
+For more details, refer to the official documentation on [authentication](https://docs.weaviate.io/cloud/manage-clusters/authentication).
 
-To use the weaviate vector store in your Ballerina project, modify the `.bal` file as follows.
+## Quick Start
 
 ### Step 1: Import the module
 
@@ -62,13 +66,13 @@ import ballerinax/ai.weaviate;
 
 ```ballerina
 ai:VectorStore vectorStore = check new weaviate:VectorStore(
-   serviceUrl = "add-weaviate-service-url", 
-   config = {
-      className: "add-collection-name"
-   }, 
-   auth = {
-      token: "add-access-token"
-   }
+    serviceUrl = "add-weaviate-service-url", 
+    config = {
+        className: "add-collection-name"
+    }, 
+    auth = {
+        token: "add-access-token"
+    }
 );
 ```
 
