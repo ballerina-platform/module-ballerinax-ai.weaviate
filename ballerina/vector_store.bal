@@ -34,7 +34,7 @@ public isolated class VectorStore {
     # Initializes the Weaviate vector store with the given configuration.
     #
     # + serviceUrl - The URL of the Weaviate service
-    # + config - The configurations containing class name, topK, and chunk field settings
+    # + config - The configurations containing collection name, topK, and chunk field name
     # + httpConfig - The HTTP configuration for the Weaviate client connection
     # + return - An `ai:Error` if the initialization fails, otherwise returns `()`
     public isolated function init(
@@ -68,7 +68,7 @@ public isolated class VectorStore {
                 ai:Embedding embedding = entry.embedding;
                 if embedding is ai:Vector {
                     objects.push({
-                        'class: self.config.className,
+                        'class: self.config.collectionName,
                         id: entry.id,
                         vector: embedding,
                         properties: {
@@ -96,7 +96,7 @@ public isolated class VectorStore {
     # + return - An `ai:Error` if the deletion fails, otherwise returns `()`
     public isolated function delete(string id) returns ai:Error? {
         lock {
-            string path = self.config.className;
+            string path = self.config.collectionName;
             http:Response|error result = self.weaviateClient->/objects/[path]/[id].delete();
             if result is error {
                 return error("Failed to query vector store", result);
@@ -121,7 +121,7 @@ public isolated class VectorStore {
             }
             string gqlQuery = string `{
                 Get {
-                    ${self.config.className}(
+                    ${self.config.collectionName}(
                         limit: ${self.topK}
                         ${filterSection}
                         nearVector: {
@@ -152,7 +152,7 @@ public isolated class VectorStore {
                 return [];
             }
             weaviate:JsonObject values = response.get("Get");
-            anydata data = values.get(string `${self.config.className}`);
+            anydata data = values.get(string `${self.config.collectionName}`);
             QueryResult[] value = check data.cloneWithType();
             ai:VectorMatch[] matches = [];
             foreach weaviate:JsonObject element in value {

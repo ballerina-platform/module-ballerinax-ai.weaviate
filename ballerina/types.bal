@@ -17,11 +17,11 @@
 
 # Configuration for the Weaviate vector store.
 #
-# + className - The name of the collection to use
+# + collectionName - The name of the collection to use
 # + chunkFieldName - The name of the field to contain the chunk details
 # + topK - The number of top similar vectors to return in queries
 public type Configuration record {|
-    string className;
+    string collectionName;
     string chunkFieldName?;
     int topK = 10;
 |};
