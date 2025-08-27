@@ -63,7 +63,7 @@ import ballerinax/ai.weaviate;
 ai:VectorStore vectorStore = check new weaviate:VectorStore(
     serviceUrl = "add-weaviate-service-url", 
     config = {
-        className: "add-collection-name"
+        collectionName: "add-collection-name"
     }, 
     auth = {
         token: "add-access-token"
@@ -87,3 +87,10 @@ ai:Error? result = vectorStore.add(
     ]
 );
 ```
+
+## Examples
+
+The Ballerina Weaviate vector store module provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-ai.weaviate/tree/main/examples).
+
+1. [Book Recommendation System](https://github.com/ballerina-platform/module-ballerinax-ai.weaviate/tree/main/examples/book-recommendation-system)
+   This example shows how to use Weaviate vector store APIs to implement a book recommendation system that stores book embeddings and queries them to find similar books based on vector similarity and metadata filtering.
