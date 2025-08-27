@@ -33,6 +33,10 @@ public isolated class VectorStore {
 
     # Initializes the Weaviate vector store with the given configuration.
     #
+    # + serviceUrl - The URL of the Weaviate service
+    # + config - The configurations containing class name, topK, and chunk field settings
+    # + httpConfig - The HTTP configuration for the Weaviate client connection
+    # + return - An `ai:Error` if the initialization fails, otherwise returns `()`
     public isolated function init(
             @display {label: "Service URL"} string serviceUrl,
             @display {label: "Weaviate Configuration"} Configuration config,
@@ -50,6 +54,10 @@ public isolated class VectorStore {
         }
     }
 
+    # Adds a list of vector entries to the Weaviate vector store.
+    #
+    # + entries - The list of vector entries to add
+    # + return - An `ai:Error` if the addition fails, otherwise returns `()`
     public isolated function add(ai:VectorEntry[] entries) returns ai:Error? {
         if entries.length() == 0 {
             return;
@@ -82,6 +90,10 @@ public isolated class VectorStore {
         }
     }
 
+    # Deletes a vector entry from the Weaviate vector store.
+    #
+    # + id - The ID of the vector entry to delete
+    # + return - An `ai:Error` if the deletion fails, otherwise returns `()`
     public isolated function delete(string id) returns ai:Error? {
         lock {
             string path = self.config.className;
@@ -92,6 +104,10 @@ public isolated class VectorStore {
         }
     }
 
+    # Queries the Weaviate vector store for vector entries.
+    #
+    # + query - The query containing the embedding, filters, and other search parameters
+    # + return - A list of `ai:VectorMatch` objects if the query is successful, otherwise returns an `ai:Error`
     public isolated function query(ai:VectorStoreQuery query) returns ai:VectorMatch[]|ai:Error {
         ai:VectorMatch[] finalMatches;
         lock {
