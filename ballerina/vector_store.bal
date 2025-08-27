@@ -66,27 +66,28 @@ public isolated class VectorStore {
             weaviate:Object[] objects = [];
             foreach ai:VectorEntry entry in entries.cloneReadOnly() {
                 ai:Embedding embedding = entry.embedding;
+                weaviate:PropertySchema properties = entry.chunk.metadata !is () ? 
+                    check entry.chunk.metadata.cloneWithType() : {};
+                properties[self.chunkFieldName] = entry.chunk.content;
+                properties["type"] = entry.chunk.'type;
+
                 if embedding is ai:Vector {
                     objects.push({
                         'class: self.config.collectionName,
                         id: entry.id,
                         vector: embedding,
-                        properties: {
-                            "type": entry.chunk.'type,
-                            [self.chunkFieldName]: entry.chunk.content
-                        }
+                        properties
                     });
                 }
                 // TODO: Add support for sparse and hybrid embeddings
                 // Weaviate does not support custom sparse or hybrid embeddings directly
                 // Need to convert them to dense vectors before adding to Weaviate
             }
-            weaviate:ObjectsGetResponse[]|error result = self.weaviateClient->/batch/objects.post({
+            weaviate:ObjectsGetResponse[] _ = check self.weaviateClient->/batch/objects.post({
                 objects
             });
-            if result is error {
-                return error("Failed to add vector entries", result);
-            }
+        } on fail error err {
+            return error("Failed to query vector store", err);
         }
     }
 
