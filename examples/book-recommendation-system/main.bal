@@ -23,6 +23,12 @@ configurable string serviceUrl = ?;
 configurable string collectionName = ?;
 configurable string token = ?;
 
+type BookEntry record {
+    float[] embedding;
+    string title;
+    string genre;
+};
+
 public function main() returns error? {
     weaviate:VectorStore vectorStore = check new (serviceUrl, {
         collectionName
@@ -32,26 +38,42 @@ public function main() returns error? {
         }
     });
 
-    // This is the embedding of a sample book entry
-    ai:Vector bookEmbedding = [0.1, 0.2, 0.3];
-
-    ai:Error? addResult = vectorStore.add([
+    BookEntry[] entries = [
         {
-            id: uuid:createRandomUuid(),
-            embedding: bookEmbedding,
-            chunk: {
-                'type: "text",
-                content: "A Game of Thrones",
-                metadata: {
-                    "genre": "Fantasy"
+            title: "A Game of Thrones",
+            genre: "Fantasy",
+            embedding: [0.1011, 0.20012, 0.3024]
+        },
+        {
+            title: "Crime And Punishment",
+            genre: "Literary fiction",
+            embedding: [0.98543, 0.347843, 0.845395]
+        },
+        {
+            title: "1984",
+            genre: "Science fiction",
+            embedding: [0.5645, 0.574, 0.3384]
+        }
+    ];
+
+    foreach BookEntry entry in entries {
+        ai:Error? addResult = vectorStore.add([
+            {
+                id: uuid:createRandomUuid(),
+                embedding: entry.embedding,
+                chunk: {
+                    'type: "text",
+                    content: entry.title,
+                    metadata: {
+                        "genre": entry.genre
+                    }
                 }
             }
+        ]);
+        if addResult is ai:Error {
+            io:println("Error occurred while adding an entry to the vector store", addResult);
+            return;
         }
-    ]);
-
-    if addResult is ai:Error {
-        io:println("Error occurred while adding an entry to the vector store", addResult);
-        return;
     }
 
     // This is the embedding of the search query. It should use the same model as the embedding of the book entries.
