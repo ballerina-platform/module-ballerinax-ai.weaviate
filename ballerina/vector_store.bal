@@ -47,7 +47,6 @@ public isolated class VectorStore {
         }
         self.weaviateClient = weaviateClient;
         self.config = config.cloneReadOnly();
-        self.topK = self.config.topK;
         lock {
             string? chunkFieldName = self.config.cloneReadOnly().chunkFieldName;
             self.chunkFieldName = chunkFieldName is () ? "content" : chunkFieldName;
@@ -93,15 +92,21 @@ public isolated class VectorStore {
 
     # Deletes a vector entry from the Weaviate vector store.
     #
-    # + id - The ID of the vector entry to delete
+    # + ids - ID/s of the vector entries to delete
     # + return - An `ai:Error` if the deletion fails, otherwise returns `()`
-    public isolated function delete(string id) returns ai:Error? {
+    public isolated function delete(string|string[] ids) returns ai:Error? {
         lock {
             string path = self.config.collectionName;
-            http:Response|error result = self.weaviateClient->/objects/[path]/[id].delete();
-            if result is error {
-                return error("Failed to query vector store", result);
+            if ids is string[] {
+                foreach string id in ids.cloneReadOnly() {
+                    ai:Error? result = deleteById(id, path, self.weaviateClient);
+                    if result is error {
+                        return result;
+                    }
+                }
+                return;
             }
+            return deleteById(ids, path, self.weaviateClient);
         }
     }
 
@@ -123,10 +128,12 @@ public isolated class VectorStore {
             string gqlQuery = string `{
                 Get {
                     ${self.config.collectionName}(
-                        limit: ${self.topK}
+                        ${query.topK > -1 ? string `limit: ${query.topK}` : string ``}
                         ${filterSection}
-                        nearVector: {
-                            vector: ${query.embedding.toJsonString()}
+                        ${query.embedding !is () ? 
+                            string `nearVector: {
+                                vector: ${query.embedding.toJsonString()}
+                            }` : string ``
                         }
                     ) {
                         content
@@ -166,13 +173,20 @@ public isolated class VectorStore {
                     },
                     similarityScore: element._additional.certainty
                 });
-            } on fail error err {
-                return error("Failed to parse vector store query", err);
-            }
+            }    
             finalMatches = matches.cloneReadOnly();
         } on fail error err {
             return error("Failed to query vector store", err);
         }
         return finalMatches;
+    }
+}
+
+isolated function deleteById(string id, string path, weaviate:Client weaviateClient) returns ai:Error? {
+    lock {
+        http:Response|error result = weaviateClient->/objects/[path]/[id].delete();
+        if result is error {
+            return error("Failed to query vector store", result);
+        }
     }
 }
