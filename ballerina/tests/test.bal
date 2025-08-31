@@ -66,3 +66,48 @@ function testQueryValuesFromVectorStore() returns error? {
     ai:VectorMatch[]|ai:Error result = mockVectorStore.query(query);
     test:assertTrue(result !is error);
 }
+
+@test:Config {}
+function testVectorStoreInitializationWithInvalidURL() returns error? {
+    VectorStore store = check new (
+        serviceUrl = "invalid-url",
+        config = {
+            collectionName: "TestChunk"
+        },
+        auth = {
+            token: "test-token"
+        }
+    );
+    ai:VectorMatch[]|ai:Error result = store.query({
+        topK: 0,
+        embedding: [1.0, 2.0, 3.0]
+    });
+    test:assertTrue(result is ai:Error);
+}
+
+@test:Config {}
+function testAddEmptyVectorEntriesArray() returns error? {
+    ai:VectorEntry[] emptyEntries = [];
+    ai:Error? result = mockVectorStore.add(emptyEntries);
+    test:assertTrue(result is error, "");
+}
+
+@test:Config {}
+function testQueryWithTopKZero() returns error? {
+    ai:VectorStoreQuery query = {
+        topK: 0,
+        embedding: [1.0, 2.0, 3.0]
+    };
+    ai:VectorMatch[]|ai:Error result = mockVectorStore.query(query);
+    test:assertTrue(result is error);
+}
+
+@test:Config {}
+function testQueryWithNegativeTopK() returns error? {
+    ai:VectorStoreQuery query = {
+        topK: -5,
+        embedding: [1.0, 2.0, 3.0]
+    };
+    ai:VectorMatch[]|ai:Error result = mockVectorStore.query(query);
+    test:assertTrue(result is error);
+}
