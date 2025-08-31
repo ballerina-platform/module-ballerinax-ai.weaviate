@@ -19,17 +19,15 @@
 #
 # + collectionName - The name of the collection to use
 # + chunkFieldName - The name of the field to contain the chunk details
-# + topK - The number of top similar vectors to return in queries
 public type Configuration record {|
     string collectionName;
     string chunkFieldName?;
-    int topK = 10;
 |};
 
 type QueryResult record {
     record {
         string? id;
-        float certainty;
+        float? certainty;
         float[] vector;
     } _additional;
     string content?;

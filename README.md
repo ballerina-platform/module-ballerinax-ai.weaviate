@@ -66,13 +66,13 @@ import ballerinax/ai.weaviate;
 
 ```ballerina
 ai:VectorStore vectorStore = check new weaviate:VectorStore(
-    serviceUrl = "add-weaviate-service-url", 
-    config = {
-        className: "add-collection-name"
-    }, 
-    auth = {
-        token: "add-access-token"
-    }
+   serviceUrl = "add-weaviate-service-url", 
+   config = {
+      collectionName: "add-collection-name"
+   }, 
+   auth = {
+      token: "add-access-token"
+   }
 );
 ```
 
@@ -80,18 +80,25 @@ ai:VectorStore vectorStore = check new weaviate:VectorStore(
 
 ```ballerina
 ai:Error? result = vectorStore.add(
-    [
-        {
-            id: uuid:createRandomUuid(),
-            embedding: [1.0, 2.0, 3.0],
-            chunk: {
-                'type: "text", 
-                content: "This is a chunk"
-            }
-        }
-    ]
+   [
+      {
+         id: uuid:createRandomUuid(),
+         embedding: [1.0, 2.0, 3.0],
+         chunk: {
+            'type: "text", 
+            content: "This is a chunk"
+         }
+      }
+   ]
 );
 ```
+
+## Examples
+
+The Ballerina Weaviate vector store module provides practical examples illustrating usage in various scenarios. Explore these [examples](https://github.com/ballerina-platform/module-ballerinax-ai.weaviate/tree/main/examples).
+
+1. [Book Recommendation System](https://github.com/ballerina-platform/module-ballerinax-ai.weaviate/tree/main/examples/book-recommendation-system)
+   This example shows how to use Weaviate vector store APIs to implement a book recommendation system that stores book embeddings and queries them to find similar books based on vector similarity and metadata filtering.
 
 ## Issues and projects
 

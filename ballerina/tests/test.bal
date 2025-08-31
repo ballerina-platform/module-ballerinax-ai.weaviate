@@ -28,11 +28,13 @@ final VectorStore mockVectorStore = check new (
     }
 );
 
+string id = uuid:createRandomUuid();
+
 @test:Config {}
 function testAddingValuesToVectorStore() returns error? {
     ai:VectorEntry[] entries = [
         {
-            id: uuid:createRandomUuid(),
+            id,
             embedding: [1.0, 2.0, 3.0],
             chunk: {
                 'type: "text", 
@@ -45,15 +47,32 @@ function testAddingValuesToVectorStore() returns error? {
 }
 
 @test:Config {}
-function testDeleteValuesFromVectorStore() returns error? {
-    ai:Error? result = mockVectorStore.delete("mock-id");
+function testDeleteValueFromVectorStore() returns error? {
+    ai:Error? result = mockVectorStore.delete(id);
+    test:assertTrue(result !is error);
+}
+
+@test:Config {}
+function testDeleteMultipleValuesFromVectorStore() returns error? {
+    string index = uuid:createRandomUuid();
+    ai:VectorEntry[] entries = [
+        {
+            id: index,
+            embedding: [1.0, 2.0, 3.0],
+            chunk: {
+                'type: "text", 
+                content: "This is a test chunk"
+            }
+        }
+    ];
+    _ = check mockVectorStore.add(entries);
+    ai:Error? result = mockVectorStore.delete([id, index]);
     test:assertTrue(result !is error);
 }
 
 @test:Config {}
 function testQueryValuesFromVectorStore() returns error? {
     ai:VectorStoreQuery query = {
-        embedding: [1.0, 2.0, 3.0],
         filters: {
             filters: [
                 {
@@ -66,4 +85,49 @@ function testQueryValuesFromVectorStore() returns error? {
     };
     ai:VectorMatch[]|ai:Error result = mockVectorStore.query(query);
     test:assertTrue(result !is error);
+}
+
+@test:Config {}
+function testVectorStoreInitializationWithInvalidURL() returns error? {
+    VectorStore store = check new (
+        serviceUrl = "invalid-url",
+        config = {
+            collectionName: "TestChunk"
+        },
+        auth = {
+            token: "test-token"
+        }
+    );
+    ai:VectorMatch[]|ai:Error result = store.query({
+        topK: 0,
+        embedding: [1.0, 2.0, 3.0]
+    });
+    test:assertTrue(result is ai:Error);
+}
+
+@test:Config {}
+function testAddEmptyVectorEntriesArray() returns error? {
+    ai:VectorEntry[] emptyEntries = [];
+    ai:Error? result = mockVectorStore.add(emptyEntries);
+    test:assertTrue(result is error, "");
+}
+
+@test:Config {}
+function testQueryWithTopKZero() returns error? {
+    ai:VectorStoreQuery query = {
+        topK: 0,
+        embedding: [1.0, 2.0, 3.0]
+    };
+    ai:VectorMatch[]|ai:Error result = mockVectorStore.query(query);
+    test:assertTrue(result is error);
+}
+
+@test:Config {}
+function testQueryWithNegativeTopK() returns error? {
+    ai:VectorStoreQuery query = {
+        topK: -5,
+        embedding: [1.0, 2.0, 3.0]
+    };
+    ai:VectorMatch[]|ai:Error result = mockVectorStore.query(query);
+    test:assertTrue(result is error);
 }

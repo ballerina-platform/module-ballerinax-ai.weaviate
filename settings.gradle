@@ -33,8 +33,10 @@ plugins {
 rootProject.name = 'module-balerinax-ai.weaviate'
 
 include ':ai.weaviate-ballerina'
+include ':ai.weaviate-examples'
 
 project(':ai.weaviate-ballerina').projectDir = file("ballerina")
+project(':ai.weaviate-examples').projectDir = file("examples")
 
 gradleEnterprise {
     buildScan {

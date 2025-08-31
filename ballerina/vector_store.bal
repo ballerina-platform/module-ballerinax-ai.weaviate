@@ -47,7 +47,6 @@ public isolated class VectorStore {
         }
         self.weaviateClient = weaviateClient;
         self.config = config.cloneReadOnly();
-        self.topK = self.config.topK;
         lock {
             string? chunkFieldName = self.config.cloneReadOnly().chunkFieldName;
             self.chunkFieldName = chunkFieldName is () ? "content" : chunkFieldName;
@@ -60,47 +59,57 @@ public isolated class VectorStore {
     # + return - An `ai:Error` if the addition fails, otherwise returns `()`
     public isolated function add(ai:VectorEntry[] entries) returns ai:Error? {
         if entries.length() == 0 {
-            return;
+            return error("No entries provided to add to the vector store");
         }
         lock {
             weaviate:Object[] objects = [];
             foreach ai:VectorEntry entry in entries.cloneReadOnly() {
                 ai:Embedding embedding = entry.embedding;
+                weaviate:PropertySchema properties = entry.chunk.metadata !is () ? 
+                    check entry.chunk.metadata.cloneWithType() : {};
+                properties[self.chunkFieldName] = entry.chunk.content;
+                properties["type"] = entry.chunk.'type;
+
                 if embedding is ai:Vector {
                     objects.push({
                         'class: self.config.collectionName,
                         id: entry.id,
                         vector: embedding,
-                        properties: {
-                            "type": entry.chunk.'type,
-                            [self.chunkFieldName]: entry.chunk.content
-                        }
+                        properties
                     });
                 }
                 // TODO: Add support for sparse and hybrid embeddings
                 // Weaviate does not support custom sparse or hybrid embeddings directly
                 // Need to convert them to dense vectors before adding to Weaviate
             }
-            weaviate:ObjectsGetResponse[]|error result = self.weaviateClient->/batch/objects.post({
+            weaviate:ObjectsGetResponse[] _ = check self.weaviateClient->/batch/objects.post({
                 objects
             });
-            if result is error {
-                return error("Failed to add vector entries", result);
-            }
+        } on fail error err {
+            return error("failed to add entries to the vector store", err);
         }
     }
 
     # Deletes a vector entry from the Weaviate vector store.
     #
-    # + id - The ID of the vector entry to delete
+    # + ids - One or more identifiers of the vector entries to delete
     # + return - An `ai:Error` if the deletion fails, otherwise returns `()`
-    public isolated function delete(string id) returns ai:Error? {
+    public isolated function delete(string|string[] ids) returns ai:Error? {
         lock {
             string path = self.config.collectionName;
-            http:Response|error result = self.weaviateClient->/objects/[path]/[id].delete();
-            if result is error {
-                return error("Failed to query vector store", result);
+            if ids is string[] {
+                transaction {
+                    foreach string id in ids.cloneReadOnly() {
+                        _ = check deleteById(id, path, self.weaviateClient);
+                    }
+                    error? commitResult = commit;
+                    if commitResult is error {
+                        return error("failed to delete vector entries", commitResult);
+                    }
+                }
+                return;
             }
+            return deleteById(ids, path, self.weaviateClient);
         }
     }
 
@@ -111,6 +120,9 @@ public isolated class VectorStore {
     public isolated function query(ai:VectorStoreQuery query) returns ai:VectorMatch[]|ai:Error {
         ai:VectorMatch[] finalMatches;
         lock {
+            if query.topK == 0 || query.topK < -1 {
+                return error("Invalid value for topK. The value cannot be 0 or less than -1.");
+            }
             string filterSection = "";
             if query.hasKey("filters") && query.filters is ai:MetadataFilters {
                 ai:MetadataFilters? filters = query.cloneReadOnly().filters;
@@ -122,10 +134,12 @@ public isolated class VectorStore {
             string gqlQuery = string `{
                 Get {
                     ${self.config.collectionName}(
-                        limit: ${self.topK}
+                        ${query.topK > -1 ? string `limit: ${query.topK}` : string ``}
                         ${filterSection}
-                        nearVector: {
-                            vector: ${query.embedding.toJsonString()}
+                        ${query.embedding !is () ? 
+                            string `nearVector: {
+                                vector: ${query.embedding.toJsonString()}
+                            }` : string ``
                         }
                     ) {
                         content
@@ -163,15 +177,23 @@ public isolated class VectorStore {
                         'type: element.'type is () ? "" : check element.'type.cloneWithType(),
                         content: element.content
                     },
-                    similarityScore: element._additional.certainty
+                    similarityScore: element._additional.certainty !is () ? 
+                        check element._additional.certainty.cloneWithType() : 0.0
                 });
-            } on fail error err {
-                return error("Failed to parse vector store query", err);
-            }
+            }    
             finalMatches = matches.cloneReadOnly();
         } on fail error err {
-            return error("Failed to query vector store", err);
+            return error("failed to query vector store", err);
         }
         return finalMatches;
+    }
+}
+
+isolated function deleteById(string id, string path, weaviate:Client weaviateClient) returns ai:Error? {
+    lock {
+        http:Response|error result = weaviateClient->/objects/[path]/[id].delete();
+        if result is error {
+            return error("failed to delete entry from the vector store", result);
+        }
     }
 }
