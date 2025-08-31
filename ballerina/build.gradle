@@ -78,7 +78,7 @@ task startWeaviateServer() {
         def outputStream = new ByteArrayOutputStream()
         // Check if the weaviate container is already running
         project.exec {
-            workingDir "${project.projectDir}/resources/server"
+            workingDir "${project.projectDir}/../resources/server"
             ignoreExitValue true
             standardOutput = outputStream
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -96,7 +96,7 @@ task startWeaviateServer() {
 
         // Start the weaviate container if not running
         project.exec {
-            workingDir "${project.projectDir}/resources/server"
+            workingDir "${project.projectDir}/../resources/server"
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', 'docker compose up -d weaviate'
             } else {
@@ -110,7 +110,7 @@ task startWeaviateServer() {
 task stopWeaviateServer() {
     doLast {
         project.exec {
-            workingDir "${project.projectDir}/resources/server"
+            workingDir "${project.projectDir}/../resources/server"
             ignoreExitValue true
             if (Os.isFamily(Os.FAMILY_WINDOWS)) {
                 commandLine 'cmd', '/c', 'docker-compose down'
