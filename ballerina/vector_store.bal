@@ -17,7 +17,6 @@
 import ballerina/ai;
 import ballerina/http;
 import ballerinax/weaviate;
-import ballerina/log;
 
 # Weaviate Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.
 #
@@ -121,6 +120,9 @@ public isolated class VectorStore {
     public isolated function query(ai:VectorStoreQuery query) returns ai:VectorMatch[]|ai:Error {
         ai:VectorMatch[] finalMatches;
         lock {
+            if query.topK == 0 {
+                return error("Invalid value for topK. The value cannot be 0.");
+            }
             string filterSection = "";
             if query.hasKey("filters") && query.filters is ai:MetadataFilters {
                 ai:MetadataFilters? filters = query.cloneReadOnly().filters;
