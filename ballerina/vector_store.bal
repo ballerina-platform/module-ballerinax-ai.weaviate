@@ -59,7 +59,7 @@ public isolated class VectorStore {
     # + return - An `ai:Error` if the addition fails, otherwise returns `()`
     public isolated function add(ai:VectorEntry[] entries) returns ai:Error? {
         if entries.length() == 0 {
-            return;
+            return error("No entries provided to add to the vector store");
         }
         lock {
             weaviate:Object[] objects = [];
@@ -120,8 +120,8 @@ public isolated class VectorStore {
     public isolated function query(ai:VectorStoreQuery query) returns ai:VectorMatch[]|ai:Error {
         ai:VectorMatch[] finalMatches;
         lock {
-            if query.topK == 0 {
-                return error("Invalid value for topK. The value cannot be 0.");
+            if query.topK == 0 || query.topK < -1 {
+                return error("Invalid value for topK. The value cannot be 0 or less than -1.");
             }
             string filterSection = "";
             if query.hasKey("filters") && query.filters is ai:MetadataFilters {
