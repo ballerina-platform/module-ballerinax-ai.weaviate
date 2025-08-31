@@ -14,7 +14,7 @@ You can create an account for free if you don't already have one.
 
 1. Visit [weaviate.io](https://weaviate.io/) and click **Try Now** to sign up for a free account
 
-   <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/ballerina/resources/sign-up-page.png" alt="Sign Up" width="60%">
+   <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/resources/sign-up-page.png" alt="Sign Up" width="60%">
 
 2. Complete the registration process and verify your email address if required
 3. Log in to your new Weaviate account
@@ -26,11 +26,11 @@ For more details, refer to the official documentation on [creating a new account
 
 1. Access the Weaviate Console and click **Create Cluster** to create a new Weaviate instance.
 
-   <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/ballerina/resources/getting-started-page.png" alt="Create Cluster" width="60%">
+   <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/resources/getting-started-page.png" alt="Create Cluster" width="60%">
 
 2. Provide the required details (e.g., Cluster name) and preferred configuration options and confirm.
 
-   <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/ballerina/resources/create-cluster.png" alt="Create Cluster" width="60%">
+   <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/resources/create-cluster.png" alt="Create Cluster" width="60%">
 
 3. Click **Create** and wait for the cluster to be provisioned (this typically takes 2-3 minutes)
 
@@ -43,7 +43,7 @@ For more details, refer to the official documentation on [creating clusters](htt
 1. In the Weaviate Console, navigate to your cluster dashboard and go to the API Keys section
 2. Click **Create API Key** and provide a name for the key and create the API key.
 
-   <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/ballerina/resources/create-api-key.png" alt="Create Cluster" width="60%">
+   <img src="https://raw.githubusercontent.com/ballerina-platform/module-ballerinax-ai.weaviate/main/resources/create-api-key.png" alt="Create Cluster" width="60%">
 
 3. Securely save the generated API key, which you'll use as the `token` in your `weaviate:Client` configuration.
 
