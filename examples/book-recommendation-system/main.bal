@@ -56,24 +56,22 @@ public function main() returns error? {
         }
     ];
 
-    foreach BookEntry entry in entries {
-        ai:Error? addResult = vectorStore.add([
-            {
-                id: uuid:createRandomUuid(),
-                embedding: entry.embedding,
-                chunk: {
-                    'type: "text",
-                    content: entry.title,
-                    metadata: {
-                        "genre": entry.genre
-                    }
+    ai:Error? addResult = vectorStore.add(from BookEntry entry in entries
+        select {
+            id: uuid:createRandomUuid(),
+            embedding: entry.embedding,
+            chunk: {
+                'type: "text",
+                content: entry.title,
+                metadata: {
+                    "genre": entry.genre
                 }
             }
-        ]);
-        if addResult is ai:Error {
-            io:println("Error occurred while adding an entry to the vector store", addResult);
-            return;
         }
+    );
+    if addResult is ai:Error {
+        io:println("Error occurred while adding an entry to the vector store", addResult);
+        return;
     }
 
     // This is the embedding of the search query. It should use the same model as the embedding of the book entries.
