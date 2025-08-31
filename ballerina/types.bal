@@ -27,7 +27,7 @@ public type Configuration record {|
 type QueryResult record {
     record {
         string? id;
-        float certainty;
+        float? certainty;
         float[] vector;
     } _additional;
     string content?;

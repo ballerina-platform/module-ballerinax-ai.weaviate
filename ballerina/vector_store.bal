@@ -17,6 +17,7 @@
 import ballerina/ai;
 import ballerina/http;
 import ballerinax/weaviate;
+import ballerina/log;
 
 # Weaviate Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.
 #
@@ -86,22 +87,28 @@ public isolated class VectorStore {
                 objects
             });
         } on fail error err {
-            return error("Failed to query vector store", err);
+            return error("failed to add entries to the vector store", err);
         }
     }
 
     # Deletes a vector entry from the Weaviate vector store.
     #
-    # + ids - ID/s of the vector entries to delete
+    # + ids - One or more identifiers of the vector entries to delete
     # + return - An `ai:Error` if the deletion fails, otherwise returns `()`
     public isolated function delete(string|string[] ids) returns ai:Error? {
         lock {
             string path = self.config.collectionName;
             if ids is string[] {
-                foreach string id in ids.cloneReadOnly() {
-                    ai:Error? result = deleteById(id, path, self.weaviateClient);
-                    if result is error {
-                        return result;
+                transaction {
+                    foreach string id in ids.cloneReadOnly() {
+                        ai:Error? result = deleteById(id, path, self.weaviateClient);
+                        if result is error {
+                            log:printError(string `failed to delete vector entry with id: ${id}`, result);
+                        }
+                    }
+                    error? commitResult = commit;
+                    if commitResult is error {
+                        return error("failed to delete vector entries", commitResult);
                     }
                 }
                 return;
@@ -171,12 +178,13 @@ public isolated class VectorStore {
                         'type: element.'type is () ? "" : check element.'type.cloneWithType(),
                         content: element.content
                     },
-                    similarityScore: element._additional.certainty
+                    similarityScore: element._additional.certainty !is () ? 
+                        check element._additional.certainty.cloneWithType() : 0.0
                 });
             }    
             finalMatches = matches.cloneReadOnly();
         } on fail error err {
-            return error("Failed to query vector store", err);
+            return error("failed to query vector store", err);
         }
         return finalMatches;
     }
@@ -186,7 +194,7 @@ isolated function deleteById(string id, string path, weaviate:Client weaviateCli
     lock {
         http:Response|error result = weaviateClient->/objects/[path]/[id].delete();
         if result is error {
-            return error("Failed to query vector store", result);
+            return error("failed to delete entry from the vector store", result);
         }
     }
 }
