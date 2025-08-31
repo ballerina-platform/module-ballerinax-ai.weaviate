@@ -53,7 +53,6 @@ function testDeleteValuesFromVectorStore() returns error? {
 @test:Config {}
 function testQueryValuesFromVectorStore() returns error? {
     ai:VectorStoreQuery query = {
-        embedding: [1.0, 2.0, 3.0],
         filters: {
             filters: [
                 {
