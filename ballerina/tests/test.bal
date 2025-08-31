@@ -28,11 +28,13 @@ final VectorStore mockVectorStore = check new (
     }
 );
 
+string id = uuid:createRandomUuid();
+
 @test:Config {}
 function testAddingValuesToVectorStore() returns error? {
     ai:VectorEntry[] entries = [
         {
-            id: uuid:createRandomUuid(),
+            id,
             embedding: [1.0, 2.0, 3.0],
             chunk: {
                 'type: "text", 
@@ -45,8 +47,26 @@ function testAddingValuesToVectorStore() returns error? {
 }
 
 @test:Config {}
-function testDeleteValuesFromVectorStore() returns error? {
-    ai:Error? result = mockVectorStore.delete("mock-id");
+function testDeleteValueFromVectorStore() returns error? {
+    ai:Error? result = mockVectorStore.delete(id);
+    test:assertTrue(result !is error);
+}
+
+@test:Config {}
+function testDeleteMultipleValuesFromVectorStore() returns error? {
+    string index = uuid:createRandomUuid();
+    ai:VectorEntry[] entries = [
+        {
+            id: index,
+            embedding: [1.0, 2.0, 3.0],
+            chunk: {
+                'type: "text", 
+                content: "This is a test chunk"
+            }
+        }
+    ];
+    _ = check mockVectorStore.add(entries);
+    ai:Error? result = mockVectorStore.delete([id, index]);
     test:assertTrue(result !is error);
 }
 
