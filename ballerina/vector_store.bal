@@ -101,10 +101,7 @@ public isolated class VectorStore {
             if ids is string[] {
                 transaction {
                     foreach string id in ids.cloneReadOnly() {
-                        ai:Error? result = deleteById(id, path, self.weaviateClient);
-                        if result is error {
-                            log:printError(string `failed to delete vector entry with id: ${id}`, result);
-                        }
+                        _ = check deleteById(id, path, self.weaviateClient);
                     }
                     error? commitResult = commit;
                     if commitResult is error {
