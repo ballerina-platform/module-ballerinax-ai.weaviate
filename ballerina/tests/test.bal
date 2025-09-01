@@ -23,9 +23,7 @@ final VectorStore mockVectorStore = check new (
     config = {
         collectionName: "Chunk"
     },
-    auth = {
-        token: "mock-token"
-    }
+    apiKey = "mock-token"
 );
 
 string id = uuid:createRandomUuid();
@@ -94,9 +92,7 @@ function testVectorStoreInitializationWithInvalidURL() returns error? {
         config = {
             collectionName: "TestChunk"
         },
-        auth = {
-            token: "test-token"
-        }
+        apiKey = "test-token"
     );
     ai:VectorMatch[]|ai:Error result = store.query({
         topK: 0,

@@ -39,13 +39,17 @@ public isolated class VectorStore {
     # + return - An `ai:Error` if the initialization fails, otherwise returns `()`
     public isolated function init(
             @display {label: "Service URL"} string serviceUrl,
+            @display {label: "API Key"} string apiKey,
             @display {label: "Weaviate Configuration"} Configuration config,
-            @display {label: "HTTP Configuration"} *weaviate:ConnectionConfig httpConfig) returns ai:Error? {
-        weaviate:Client|error weaviateClient = new (httpConfig, serviceUrl);
-        if weaviateClient is error {
-            return error("Failed to initialize weaviate vector store", weaviateClient);
+            @display {label: "HTTP Configuration"} ConnectionConfig httpConfig = {}) returns ai:Error? {
+        httpConfig.auth = {
+            token: apiKey
+        };
+        do {
+            self.weaviateClient = check new (check httpConfig.cloneWithType(), serviceUrl);
+        } on fail error err {
+            return error("Failed to initialize weaviate vector store", err);
         }
-        self.weaviateClient = weaviateClient;
         self.config = config.cloneReadOnly();
         lock {
             string? chunkFieldName = self.config.cloneReadOnly().chunkFieldName;

@@ -21,7 +21,7 @@ import ballerinax/ai.weaviate;
 
 configurable string serviceUrl = ?;
 configurable string collectionName = ?;
-configurable string token = ?;
+configurable string apiKey = ?;
 
 type BookEntry record {
     float[] embedding;
@@ -30,13 +30,13 @@ type BookEntry record {
 };
 
 public function main() returns error? {
-    weaviate:VectorStore vectorStore = check new (serviceUrl, {
-        collectionName
-    }, {
-        auth: {
-            token
+    weaviate:VectorStore vectorStore = check new (
+        serviceUrl, 
+        apiKey, 
+        {
+            collectionName
         }
-    });
+    );
 
     BookEntry[] entries = [
         {
