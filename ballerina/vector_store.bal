@@ -34,6 +34,7 @@ public isolated class VectorStore {
     # Initializes the Weaviate vector store with the given configuration.
     #
     # + serviceUrl - The URL of the Weaviate service
+    # + apiKey - The API key for the Weaviate service
     # + config - The configurations containing collection name, topK, and chunk field name
     # + httpConfig - The HTTP configuration for the Weaviate client connection
     # + return - An `ai:Error` if the initialization fails, otherwise returns `()`
