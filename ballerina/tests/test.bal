@@ -16,10 +16,11 @@
 
 import ballerina/ai;
 import ballerina/test;
+import ballerina/time;
 import ballerina/uuid;
 
 final VectorStore mockVectorStore = check new (
-    serviceUrl = "http://localhost:8080/v1",
+    serviceUrl = "http://localhost:8080",
     config = {
         collectionName: "Chunk"
     },
@@ -27,6 +28,7 @@ final VectorStore mockVectorStore = check new (
 );
 
 string id = uuid:createRandomUuid();
+time:Utc createdAt = time:utcNow();
 
 @test:Config {}
 function testAddingValuesToVectorStore() returns error? {
@@ -35,8 +37,11 @@ function testAddingValuesToVectorStore() returns error? {
             id,
             embedding: [1.0, 2.0, 3.0],
             chunk: {
-                'type: "text", 
-                content: "This is a test chunk"
+                'type: "text",
+                content: "This is a test chunk",
+                metadata: {
+                    createdAt
+                }
             }
         }
     ];
@@ -58,7 +63,7 @@ function testDeleteMultipleValuesFromVectorStore() returns error? {
             id: index,
             embedding: [1.0, 2.0, 3.0],
             chunk: {
-                'type: "text", 
+                'type: "text",
                 content: "This is a test chunk"
             }
         }
@@ -68,21 +73,24 @@ function testDeleteMultipleValuesFromVectorStore() returns error? {
     test:assertTrue(result !is error);
 }
 
-@test:Config {}
+@test:Config {
+    dependsOn: [testAddingValuesToVectorStore]
+}
 function testQueryValuesFromVectorStore() returns error? {
     ai:VectorStoreQuery query = {
         filters: {
             filters: [
                 {
+                    'key: "createdAt",
                     operator: ai:EQUAL,
-                    'key: "content",
-                    value: "This is a test chunk"
+                    value: createdAt
                 }
             ]
         }
     };
-    ai:VectorMatch[]|ai:Error result = mockVectorStore.query(query);
-    test:assertTrue(result !is error);
+    ai:VectorMatch[] result = check mockVectorStore.query(query);
+    test:assertTrue(result.length() > 0);
+    test:assertEquals(result[0].chunk.metadata?.createdAt, createdAt);
 }
 
 @test:Config {}
