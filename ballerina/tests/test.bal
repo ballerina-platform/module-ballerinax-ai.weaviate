@@ -28,6 +28,8 @@ final VectorStore mockVectorStore = check new (
     apiKey = "mock-token"
 );
 
+string fileName = "this is a test file.pdf";
+
 @test:BeforeSuite
 function beforeSuite() returns error? {
     http:Client httpClient = check new ("http://localhost:8080");
@@ -57,7 +59,8 @@ function testAddingValuesToVectorStore() returns error? {
                 'type: "text",
                 content: "This is a test chunk",
                 metadata: {
-                    createdAt
+                    createdAt,
+                    fileName
                 }
             }
         }
@@ -98,9 +101,9 @@ function testQueryValuesFromVectorStore() returns error? {
         filters: {
             filters: [
                 {
-                    'key: "createdAt",
+                    'key: "fileName",
                     operator: ai:EQUAL,
-                    value: createdAt
+                    value: fileName
                 },
                 {
                     'key: "content",
