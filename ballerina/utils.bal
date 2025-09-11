@@ -15,12 +15,13 @@
 // under the License.
 
 import ballerina/ai;
+import ballerina/time;
 
 # Converts metadata filters to Weaviate compatible filter format
 #
 # + filters - The metadata filters containing filter conditions and logical operators
 # + return - A map representing the converted filter structure or an error if conversion fails
-isolated function convertWeaviateFilters(ai:MetadataFilters filters) returns map<anydata>|ai:Error {
+isolated function convertWeaviateFilters(ai:MetadataFilters filters, string[] metadataFields) returns map<anydata>|ai:Error {
     (ai:MetadataFilters|ai:MetadataFilter)[]? rawFilters = filters.filters;
     if rawFilters == () || rawFilters.length() == 0 {
         return {};
@@ -28,15 +29,23 @@ isolated function convertWeaviateFilters(ai:MetadataFilters filters) returns map
     map<anydata>[] filterList = [];
     foreach (ai:MetadataFilters|ai:MetadataFilter) filter in rawFilters {
         if filter is ai:MetadataFilter {
+            metadataFields.push(filter.key);
             map<anydata> filterMap = {};
             string weaviateOp = check mapWeaviateOperator(filter.operator);
             filterMap["path"] = [filter.key];
             filterMap["operator"] = weaviateOp;
-            filterMap["valueText"] = filter.value;
+            anydata value = filter.value;
+            if value is string {
+                filterMap["valueText"] = value;
+            } else if value is time:Utc {
+                filterMap["valueNumber"] = value[0];
+            } else {
+                filterMap["valueText"] = string `${value.toString()}`;
+            }
             filterList.push(filterMap);
             continue;
         }
-        map<anydata> nestedFilter = check convertWeaviateFilters(filter);
+        map<anydata> nestedFilter = check convertWeaviateFilters(filter, metadataFields);
         if nestedFilter.length() > 0 {
             filterList.push(nestedFilter);
         }
@@ -138,7 +147,7 @@ isolated function mapToGraphQLObjectString(map<anydata> filter) returns string {
             }
             result += "[" + resultArr + "]";
         } else if value is string {
-            result += 'key == "operator" ? value : string `"${value}"`;
+            result += 'key == "operator" ? value : string `${value}`;
         } else {
             result += value.toString();
         }

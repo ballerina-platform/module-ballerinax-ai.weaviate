@@ -129,12 +129,17 @@ public isolated class VectorStore {
                 return error("Invalid value for topK. The value cannot be 0 or less than -1.");
             }
             string filterSection = "";
+            string[] metadataFields = [];
             if query.hasKey("filters") && query.filters is ai:MetadataFilters {
                 ai:MetadataFilters? filters = query.cloneReadOnly().filters;
                 if filters !is () {
-                    map<anydata> weaviateFilter = check convertWeaviateFilters(filters);
+                    map<anydata> weaviateFilter = check convertWeaviateFilters(filters, metadataFields);
                     filterSection = "where: " + mapToGraphQLObjectString(weaviateFilter);
                 }
+            }
+            string metadataFieldsString = "";
+            foreach string fieldName in metadataFields {
+                metadataFieldsString += fieldName + "\n                        ";
             }
             string gqlQuery = string `{
                 Get {
@@ -148,6 +153,7 @@ public isolated class VectorStore {
                         }
                     ) {
                         content
+                        ${metadataFieldsString}
                         _additional {
                             certainty
                             id
@@ -175,6 +181,10 @@ public isolated class VectorStore {
             QueryResult[] value = check data.cloneWithType();
             ai:VectorMatch[] matches = [];
             foreach weaviate:JsonObject element in value {
+                map<anydata> metadata = {};
+                foreach string fieldName in metadataFields {
+                    metadata[fieldName] = element.get(fieldName);
+                }
                 ai:TextChunk chunk = {
                     content: element.content.toString(),
                     metadata: check metadata.cloneWithType()
