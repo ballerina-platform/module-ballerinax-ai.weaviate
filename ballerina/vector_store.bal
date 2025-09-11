@@ -148,9 +148,10 @@ public isolated class VectorStore {
                     filterSection = "where: " + mapToGraphQLObjectString(weaviateFilter);
                 }
             }
-            string metadataFieldsString = "";
-            foreach string fieldName in metadataFields {
-                metadataFieldsString += fieldName + "\n                        ";
+            string[] allProperties = check getCollectionProperties(self.config.collectionName, self.weaviateClient);
+            string allFieldsString = "";
+            foreach string fieldName in allProperties {
+                allFieldsString += fieldName + "\n";
             }
             string gqlQuery = string `{
                 Get {
@@ -163,8 +164,7 @@ public isolated class VectorStore {
                             }` : string ``
                         }
                     ) {
-                        content
-                        ${metadataFieldsString}
+                        ${allFieldsString}
                         _additional {
                             certainty
                             id
@@ -193,9 +193,18 @@ public isolated class VectorStore {
             ai:VectorMatch[] matches = [];
             foreach weaviate:JsonObject element in value {
                 ai:Metadata metadata = {};
-                foreach string fieldName in metadataFields {
-                    time:Utc|error metadataValue = time:utcFromString(element.get(fieldName).toString());
-                    metadata[fieldName] = metadataValue is error ? element.get(fieldName).toString() : metadataValue;
+                foreach string fieldName in allProperties {
+                    if element.hasKey(fieldName) {
+                        anydata fieldValue = element.get(fieldName);
+                        if fieldValue is string {
+                            time:Utc|error metadataValue = time:utcFromString(fieldValue);
+                            metadata[fieldName] = metadataValue is error ? fieldValue : metadataValue;
+                        } else if fieldValue is int|float|decimal|boolean {
+                            metadata[fieldName] = fieldValue;
+                        } else {
+                            metadata[fieldName] = fieldValue.toString();
+                        }
+                    }
                 }
                 ai:TextChunk chunk = {
                     content: element.content.toString(),
