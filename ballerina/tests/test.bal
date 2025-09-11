@@ -101,6 +101,11 @@ function testQueryValuesFromVectorStore() returns error? {
                     'key: "createdAt",
                     operator: ai:EQUAL,
                     value: createdAt
+                },
+                {
+                    'key: "content",
+                    operator: ai:EQUAL,
+                    value: "This is a test chunk"
                 }
             ]
         }
