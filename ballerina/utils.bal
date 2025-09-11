@@ -39,7 +39,7 @@ isolated function convertWeaviateFilters(ai:MetadataFilters filters, string[] me
             if value is time:Utc {
                 filterMap["valueDate"] = string `"${time:utcToString(value)}"`;
             } else {
-                filterMap["valueText"] = value;
+                filterMap["valueText"] = string `"${value.toString()}"`;
             }
             filterList.push(filterMap);
             continue;
