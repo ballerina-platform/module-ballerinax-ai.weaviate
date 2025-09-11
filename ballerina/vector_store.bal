@@ -175,13 +175,14 @@ public isolated class VectorStore {
             QueryResult[] value = check data.cloneWithType();
             ai:VectorMatch[] matches = [];
             foreach weaviate:JsonObject element in value {
+                ai:TextChunk chunk = {
+                    content: element.content.toString(),
+                    metadata: check metadata.cloneWithType()
+                };
                 matches.push({
                     id: element._additional.id,
                     embedding: element._additional.vector,
-                    chunk: {
-                        'type: element.'type is () ? "" : check element.'type.cloneWithType(),
-                        content: element.content
-                    },
+                    chunk,
                     similarityScore: element._additional.certainty !is () ? 
                         check element._additional.certainty.cloneWithType() : 0.0
                 });
