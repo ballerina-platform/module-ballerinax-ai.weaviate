@@ -18,14 +18,31 @@ import ballerina/ai;
 import ballerina/test;
 import ballerina/time;
 import ballerina/uuid;
+import ballerina/http;
 
 final VectorStore mockVectorStore = check new (
     serviceUrl = "http://localhost:8080",
     config = {
-        collectionName: "Chunk"
+        collectionName: "Test"
     },
     apiKey = "mock-token"
 );
+
+@test:BeforeSuite
+function beforeSuite() returns error? {
+    http:Client httpClient = check new ("http://localhost:8080");
+    http:Response _ = check httpClient->post(path = "/v1/schema", headers =  {
+            "Content-Type": "application/json"
+        }, message = {
+            "class": "Test",
+            "properties": [
+                { "name": "content", "dataType": ["text"] },
+                { "name": "type", "dataType": ["string"] },
+                { "name": "createdAt", "dataType": ["date"] }
+            ]
+        });
+}
+
 
 string id = uuid:createRandomUuid();
 time:Utc createdAt = time:utcNow();
