@@ -16,6 +16,7 @@
 
 import ballerina/ai;
 import ballerina/time;
+import ballerinax/weaviate;
 
 # Converts metadata filters to Weaviate compatible filter format
 #
@@ -155,4 +156,46 @@ isolated function mapToGraphQLObjectString(map<anydata> filter) returns string {
     }
     result += "}";
     return result;
+}
+
+isolated function getCollectionProperties(string className, 
+                                          weaviate:Client weaviateClient) returns string[]|ai:Error {
+    lock {
+        string introspectionQuery = string `{
+            __type(name: "${className}") {
+                name
+                fields {
+                name
+                type {
+                    name
+                    kind
+                }
+                }
+            }
+        }`;
+        weaviate:GraphQLResponse result = check weaviateClient->/graphql.post({
+            query: introspectionQuery
+        });
+        weaviate:GraphQLError[]? errorResult = result?.errors;
+        if errorResult !is () {
+            return error("Failed to get collection properties: " + errorResult.toJsonString());
+        }
+        record {|weaviate:JsonObject...;|}? response = result.data;
+        if response is () {
+            return error("No data returned from GraphQL introspection query");
+        }
+        map<json> typeMap = check response.get("__type").cloneWithType();
+        json fieldsData = typeMap.get("fields");
+        map<json>[] fieldsArray = check fieldsData.cloneWithType();
+        string[] propertyNames = [];
+        foreach map<json> fieldItem in fieldsArray {
+            json nameData = fieldItem.get("name");
+            if nameData is string && nameData != "_additional" {
+                propertyNames.push(nameData);
+            }
+        }
+        return propertyNames;
+    } on fail error err {
+        return error("Failed to get collection properties", err);
+    }
 }
