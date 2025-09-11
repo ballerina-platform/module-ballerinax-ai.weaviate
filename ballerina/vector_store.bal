@@ -17,6 +17,7 @@
 import ballerina/ai;
 import ballerina/http;
 import ballerinax/weaviate;
+import ballerina/time;
 
 # Weaviate Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.
 #
@@ -47,7 +48,7 @@ public isolated class VectorStore {
             token: apiKey
         };
         do {
-            self.weaviateClient = check new (check httpConfig.cloneWithType(), serviceUrl);
+            self.weaviateClient = check new (check httpConfig.cloneWithType(), string `${serviceUrl}/v1` );
         } on fail error err {
             return error("Failed to initialize weaviate vector store", err);
         }
@@ -70,11 +71,21 @@ public isolated class VectorStore {
             weaviate:Object[] objects = [];
             foreach ai:VectorEntry entry in entries.cloneReadOnly() {
                 ai:Embedding embedding = entry.embedding;
-                weaviate:PropertySchema properties = entry.chunk.metadata !is () ? 
-                    check entry.chunk.metadata.cloneWithType() : {};
+                weaviate:PropertySchema properties = {};
                 properties[self.chunkFieldName] = entry.chunk.content;
                 properties["type"] = entry.chunk.'type;
-
+                ai:Metadata? metadata = entry.chunk.metadata;
+                if metadata !is () {
+                    foreach string item in metadata.keys() {
+                        anydata metadataValue = metadata.get(item);
+                        if metadataValue is time:Utc {
+                            string utcToString = time:utcToString(metadataValue);
+                            properties[item] = utcToString;
+                        } else {
+                            properties[item] = metadataValue;
+                        }
+                    }
+                }
                 if embedding is ai:Vector {
                     objects.push({
                         'class: self.config.collectionName,
@@ -129,12 +140,17 @@ public isolated class VectorStore {
                 return error("Invalid value for topK. The value cannot be 0 or less than -1.");
             }
             string filterSection = "";
+            string[] metadataFields = [];
             if query.hasKey("filters") && query.filters is ai:MetadataFilters {
                 ai:MetadataFilters? filters = query.cloneReadOnly().filters;
                 if filters !is () {
-                    map<anydata> weaviateFilter = check convertWeaviateFilters(filters);
+                    map<anydata> weaviateFilter = check convertWeaviateFilters(filters, metadataFields);
                     filterSection = "where: " + mapToGraphQLObjectString(weaviateFilter);
                 }
+            }
+            string metadataFieldsString = "";
+            foreach string fieldName in metadataFields {
+                metadataFieldsString += fieldName + "\n                        ";
             }
             string gqlQuery = string `{
                 Get {
@@ -148,6 +164,7 @@ public isolated class VectorStore {
                         }
                     ) {
                         content
+                        ${metadataFieldsString}
                         _additional {
                             certainty
                             id
@@ -175,13 +192,19 @@ public isolated class VectorStore {
             QueryResult[] value = check data.cloneWithType();
             ai:VectorMatch[] matches = [];
             foreach weaviate:JsonObject element in value {
+                ai:Metadata metadata = {};
+                foreach string fieldName in metadataFields {
+                    time:Utc|error metadataValue = time:utcFromString(element.get(fieldName).toString());
+                    metadata[fieldName] = metadataValue is error ? element.get(fieldName).toString() : metadataValue;
+                }
+                ai:TextChunk chunk = {
+                    content: element.content.toString(),
+                    metadata: check metadata.cloneWithType()
+                };
                 matches.push({
                     id: element._additional.id,
                     embedding: element._additional.vector,
-                    chunk: {
-                        'type: element.'type is () ? "" : check element.'type.cloneWithType(),
-                        content: element.content
-                    },
+                    chunk,
                     similarityScore: element._additional.certainty !is () ? 
                         check element._additional.certainty.cloneWithType() : 0.0
                 });
