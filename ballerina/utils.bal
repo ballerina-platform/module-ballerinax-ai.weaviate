@@ -20,6 +20,7 @@ import ballerina/time;
 # Converts metadata filters to Weaviate compatible filter format
 #
 # + filters - The metadata filters containing filter conditions and logical operators
+# + metadataFields - The fields of the metadata to be filtered
 # + return - A map representing the converted filter structure or an error if conversion fails
 isolated function convertWeaviateFilters(ai:MetadataFilters filters, string[] metadataFields) returns map<anydata>|ai:Error {
     (ai:MetadataFilters|ai:MetadataFilter)[]? rawFilters = filters.filters;
@@ -34,13 +35,11 @@ isolated function convertWeaviateFilters(ai:MetadataFilters filters, string[] me
             string weaviateOp = check mapWeaviateOperator(filter.operator);
             filterMap["path"] = [filter.key];
             filterMap["operator"] = weaviateOp;
-            anydata value = filter.value;
-            if value is string {
-                filterMap["valueText"] = value;
-            } else if value is time:Utc {
-                filterMap["valueNumber"] = value[0];
+            json value = filter.value;
+            if value is time:Utc {
+                filterMap["valueDate"] = string `"${time:utcToString(value)}"`;
             } else {
-                filterMap["valueText"] = string `${value.toString()}`;
+                filterMap["valueText"] = value;
             }
             filterList.push(filterMap);
             continue;

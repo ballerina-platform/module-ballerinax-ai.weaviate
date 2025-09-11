@@ -17,6 +17,7 @@
 import ballerina/ai;
 import ballerina/http;
 import ballerinax/weaviate;
+import ballerina/time;
 
 # Weaviate Vector Store implementation with support for Dense, Sparse, and Hybrid vector search modes.
 #
@@ -70,11 +71,21 @@ public isolated class VectorStore {
             weaviate:Object[] objects = [];
             foreach ai:VectorEntry entry in entries.cloneReadOnly() {
                 ai:Embedding embedding = entry.embedding;
-                weaviate:PropertySchema properties = entry.chunk.metadata !is () ? 
-                    check entry.chunk.metadata.cloneWithType() : {};
+                weaviate:PropertySchema properties = {};
                 properties[self.chunkFieldName] = entry.chunk.content;
                 properties["type"] = entry.chunk.'type;
-
+                ai:Metadata? metadata = entry.chunk.metadata;
+                if metadata !is () {
+                    foreach string item in metadata.keys() {
+                        anydata metadataValue = metadata.get(item);
+                        if metadataValue is time:Utc {
+                            string utcToString = time:utcToString(metadataValue);
+                            properties[item] = utcToString;
+                        } else {
+                            properties[item] = metadataValue;
+                        }
+                    }
+                }
                 if embedding is ai:Vector {
                     objects.push({
                         'class: self.config.collectionName,
@@ -181,9 +192,10 @@ public isolated class VectorStore {
             QueryResult[] value = check data.cloneWithType();
             ai:VectorMatch[] matches = [];
             foreach weaviate:JsonObject element in value {
-                map<anydata> metadata = {};
+                ai:Metadata metadata = {};
                 foreach string fieldName in metadataFields {
-                    metadata[fieldName] = element.get(fieldName);
+                    time:Utc|error metadataValue = time:utcFromString(element.get(fieldName).toString());
+                    metadata[fieldName] = metadataValue is error ? element.get(fieldName).toString() : metadataValue;
                 }
                 ai:TextChunk chunk = {
                     content: element.content.toString(),
