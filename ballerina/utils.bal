@@ -38,8 +38,10 @@ isolated function convertWeaviateFilters(ai:MetadataFilters filters, string[] me
             json value = filter.value;
             if value is time:Utc {
                 filterMap["valueDate"] = string `"${time:utcToString(value)}"`;
+            } else if value is int|float|decimal {
+                filterMap["valueNumber"] = value;
             } else {
-                filterMap["valueText"] = value;
+                filterMap["valueText"] = string `"${value.toString()}"`;
             }
             filterList.push(filterMap);
             continue;
