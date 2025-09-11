@@ -47,7 +47,7 @@ public isolated class VectorStore {
             token: apiKey
         };
         do {
-            self.weaviateClient = check new (check httpConfig.cloneWithType(), serviceUrl);
+            self.weaviateClient = check new (check httpConfig.cloneWithType(), string `${serviceUrl}/v1` );
         } on fail error err {
             return error("Failed to initialize weaviate vector store", err);
         }
