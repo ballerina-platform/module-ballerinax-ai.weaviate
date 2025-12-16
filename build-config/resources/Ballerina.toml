@@ -1,7 +1,7 @@
 [package]
 authors = ["Ballerina"]
 distribution = "2201.12.0"
-keywords = ["AI", "Weaviate", "Vector", "Store"]
+keywords = ["Vector", "Store", "Vendor/Weaviate", "Area/AI", "Type/Util"]
 license = ["Apache-2.0"]
 name = "ai.weaviate"
 org = "ballerinax"
