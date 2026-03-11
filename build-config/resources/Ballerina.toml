@@ -1,11 +1,12 @@
 [package]
 authors = ["Ballerina"]
 distribution = "2201.12.0"
-keywords = ["Vector", "Store", "Vendor/Weaviate", "Area/AI", "Type/Util"]
+keywords = ["Vector", "Store", "Vendor/Weaviate", "Area/AI", "Type/Connector"]
 license = ["Apache-2.0"]
 name = "ai.weaviate"
 org = "ballerinax"
 repository = "https://github.com/ballerina-platform/module-ballerinax-ai.weaviate"
+icon = "icon.png"
 version = "@toml.version@"
 
 [platform.java21]
