@@ -1,5 +1,15 @@
 ## Overview
 
+Weaviate is an open-source vector database that allows you to store data objects and vector embeddings from your favorite ML-models. The Weaviate connector enables seamless interaction with Weaviate instances, supporting complex vector searches and data management.
+
+### Key Features
+
+- Seamless storage of data objects and vector embeddings
+- High-performance vector search and semantic search
+- Support for modular vectorizers and ML-model integration
+- Efficient management of schemas and classes
+- Secure communication with authentication support
+- GraalVM compatible for native image builds
 
 ## Set up guide
 
