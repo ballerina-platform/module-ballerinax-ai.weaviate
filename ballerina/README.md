@@ -1,5 +1,13 @@
 ## Overview
 
+Weaviate is an open-source vector database that allows you to store data objects and vector embeddings from your favorite ML-models. The Weaviate connector enables seamless interaction with Weaviate instances, supporting complex vector searches and data management.
+
+### Key Features
+
+- Seamless storage of data objects and vector embeddings\n- High-performance vector search and semantic search\n- Support for modular vectorizers and ML-model integration\n- Efficient management of schemas and classes\n- Secure communication with authentication support\n- GraalVM compatible for native image builds
+
+
+
 Weaviate is an open-source vector database that stores both objects and vectors, allowing for combining vector search with structured filtering with the scalability of a cloud-native database.
 
 The Ballerina Weaviate vector store module provides a comprehensive API for integrating with Weaviate vector databases, enabling efficient storage, retrieval, and management of high-dimensional vectors. This implementation allows being used as a Ballerina `ai:VectorStore`, providing smooth integration with the Ballerina AI module.
