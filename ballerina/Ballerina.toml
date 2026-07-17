@@ -7,7 +7,7 @@ name = "ai.weaviate"
 org = "ballerinax"
 repository = "https://github.com/ballerina-platform/module-ballerinax-ai.weaviate"
 icon = "icon.png"
-version = "1.0.4"
+version = "1.0.5"
 
 [platform.java21]
 graalvmCompatible = true
