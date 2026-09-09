@@ -443,7 +443,7 @@ modules = [
 [[package]]
 org = "ballerinax"
 name = "ai.weaviate"
-version = "1.0.4"
+version = "1.0.6"
 dependencies = [
 	{org = "ballerina", name = "ai"},
 	{org = "ballerina", name = "http"},
